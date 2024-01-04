@@ -5,7 +5,6 @@ use crate::serialize::serializer::*;
 
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 use std::ptr::NonNull;
-use serde_bytes::ByteBuf;
 
 pub struct TupleSerializer {
     ptr: *mut pyo3::ffi::PyObject,
