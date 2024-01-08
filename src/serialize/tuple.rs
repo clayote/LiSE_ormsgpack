@@ -43,16 +43,13 @@ impl Serialize for TupleSerializer {
         if len > 0 {
             for i in 0..=len - 1 {
                 let elem = nonnull!(ffi!(PyTuple_GET_ITEM(self.ptr, i as isize)));
-                serializer.serialize_newtype_struct(
-                    rmp_serde::MSGPACK_EXT_STRUCT_NAME,
-                    &(0 as i8, &PyObjectSerializer::new(
-                        elem.as_ptr(),
-                        self.opts,
-                        self.default_calls,
-                        self.recursion + 1,
-                        self.default,
-                    )),
-                )?;
+                seq.serialize_element(&PyObjectSerializer::new(
+                    elem.as_ptr(),
+                    self.opts,
+                    self.default_calls,
+                    self.recursion + 1,
+                    self.default,
+                ))?
             }
         }
         seq.end()
