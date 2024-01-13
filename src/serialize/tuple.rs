@@ -54,7 +54,7 @@ impl Serialize for TupleSerializer {
         let _ = seq.end();
         serializer.serialize_newtype_struct(
             rmp_serde::MSGPACK_EXT_STRUCT_NAME,
-            &(0 as i8, ByteBuf::from(buf.buffer()))
+            &(0i8, ByteBuf::from(buf.buffer()))
         )
     }
 }
