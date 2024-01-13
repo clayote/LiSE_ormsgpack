@@ -51,8 +51,12 @@ pub static mut UUID_TYPE: *mut PyTypeObject = null_mut();
 pub static mut ENUM_TYPE: *mut PyTypeObject = null_mut();
 pub static mut FIELD_TYPE: *mut PyTypeObject = null_mut();
 pub static mut EXT_TYPE: *mut PyTypeObject = null_mut();
+pub static mut EXCEPTION_TYPE: *mut PyTypeObject = null_mut();
+pub static mut FUNCTION_TYPE: *mut PyTypeObject = null_mut();
+pub static mut METHOD_TYPE: *mut PyTypeObject = null_mut();
+pub static mut SET_TYPE: *mut PyTypeObject = null_mut();
+pub static mut FROZENSET_TYPE: *mut PyTypeObject = null_mut();
 pub static mut NUMPY_TYPES: OnceBox<Option<NonNull<NumpyTypes>>> = OnceBox::new();
-
 pub static mut UTCOFFSET_METHOD_STR: *mut PyObject = null_mut();
 pub static mut NORMALIZE_METHOD_STR: *mut PyObject = null_mut();
 pub static mut CONVERT_METHOD_STR: *mut PyObject = null_mut();
@@ -99,6 +103,11 @@ pub fn init_typerefs() {
             .set(crate::deserialize::KeyMap::default())
             .is_ok());
         PyDateTime_IMPORT();
+        EXCEPTION_TYPE = (*PyExc_Exception).ob_type;
+        FUNCTION_TYPE = *PyFunction_Type;
+        METHOD_TYPE = *PyMethodDescr_Type;  // Descr??
+        SET_TYPE = *PySet_Type;
+        FROZENSET_TYPE = *PyFrozenSet_Type;
         NONE = Py_None();
         TRUE = Py_True();
         FALSE = Py_False();
