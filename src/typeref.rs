@@ -24,6 +24,18 @@ pub struct NumpyTypes {
     pub bool_: *mut PyTypeObject,
 }
 
+pub struct LiSETypes {
+    pub character: *mut PyTypeObject,
+    pub character_proxy: *mut PyTypeObject,
+    pub thing: *mut PyTypeObject,
+    pub thing_proxy: *mut PyTypeObject,
+    pub place: *mut PyTypeObject,
+    pub place_proxy: *mut PyTypeObject,
+    pub portal: *mut PyTypeObject,
+    pub portal_proxy: *mut PyTypeObject,
+    pub final_rule: *mut PyTypeObject,
+}
+
 pub static mut DEFAULT: *mut PyObject = null_mut();
 pub static mut EXT_HOOK: *mut PyObject = null_mut();
 pub static mut OPTION: *mut PyObject = null_mut();
@@ -57,6 +69,7 @@ pub static mut METHOD_TYPE: *mut PyTypeObject = null_mut();
 pub static mut SET_TYPE: *mut PyTypeObject = null_mut();
 pub static mut FROZENSET_TYPE: *mut PyTypeObject = null_mut();
 pub static mut NUMPY_TYPES: OnceBox<Option<NonNull<NumpyTypes>>> = OnceBox::new();
+pub static mut LISE_TYPES: OnceBox<Option<NonNull<LiSETypes>>> = OnceBox::new();
 pub static mut UTCOFFSET_METHOD_STR: *mut PyObject = null_mut();
 pub static mut NORMALIZE_METHOD_STR: *mut PyObject = null_mut();
 pub static mut CONVERT_METHOD_STR: *mut PyObject = null_mut();
@@ -199,6 +212,40 @@ pub fn load_numpy_types() -> Box<Option<NonNull<NumpyTypes>>> {
         });
         Py_XDECREF(numpy);
         Box::new(Some(nonnull!(Box::<NumpyTypes>::into_raw(types))))
+    }
+}
+
+macro_rules! pymod {
+    ($module:literal) => {PyImport_ImportModule($module.as_ptr() as *const c_char)};
+}
+
+#[cold]
+pub fn load_lise_types() -> Box<Option<NonNull<LiSETypes>>> {
+    unsafe {
+        let util_mod = pymod!("LiSE.util\0");
+        let char_mod = pymod!("LiSE.character\0");
+        let proxy_mod = pymod!("LiSE.proxy\0");
+        let node_mod = pymod!("LiSE.node\0");
+        let portal_mod = pymod!("LiSE.portal\0");
+
+        let types = Box::new(LiSETypes {
+            character: look_up_numpy_type(char_mod, "Character\0"),
+            character_proxy: look_up_numpy_type(proxy_mod, "CharacterProxy\0"),
+            thing: look_up_numpy_type(node_mod, "Thing\0"),
+            thing_proxy: look_up_numpy_type(proxy_mod, "ThingProxy\0"),
+            place: look_up_numpy_type(node_mod, "Place\0"),
+            place_proxy: look_up_numpy_type(proxy_mod, "PlaceProxy\0"),
+            portal: look_up_numpy_type(portal_mod, "Portal\0"),
+            portal_proxy: look_up_numpy_type(proxy_mod, "PortalProxy\0"),
+            final_rule: look_up_numpy_type(util_mod, "FinalRule\0"),
+        });
+
+        Py_XDECREF(portal_mod);
+        Py_XDECREF(node_mod);
+        Py_XDECREF(proxy_mod);
+        Py_XDECREF(char_mod);
+        Py_XDECREF(util_mod);
+        Box::new(Some(nonnull!(Box::<LiSETypes>::into_raw(types))))
     }
 }
 
