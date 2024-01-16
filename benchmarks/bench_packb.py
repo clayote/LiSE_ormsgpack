@@ -3,7 +3,7 @@ import os.path
 import msgpack
 import pytest
 
-import ormsgpack
+import lise_ormsgpack
 
 DATASETS = ("canada", "citm_catalog", "github", "twitter")
 DATASETS_DATA = {
@@ -25,4 +25,4 @@ def test_msgpack_packb(benchmark, dataset):
 @pytest.mark.parametrize("dataset", DATASETS)
 def test_ormsgpack_packb(benchmark, dataset):
     benchmark.group = f"{dataset} packb"
-    benchmark(ormsgpack.packb, DATASETS_DATA[dataset])
+    benchmark(lise_ormsgpack.packb, DATASETS_DATA[dataset])

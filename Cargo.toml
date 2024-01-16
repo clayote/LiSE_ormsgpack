@@ -1,11 +1,11 @@
 [package]
-name = "ormsgpack"
+name = "LiSE_ormsgpack"
 version = "1.4.1"
 authors = [
     "Aviram Hassan <aviramyhassan@gmail.com>",
     "Emanuele Giaquinta <emanuele.giaquinta@gmail.com>",
 ]
-description = "Fast, correct Python msgpack library supporting dataclasses, datetimes, and numpy"
+description = "Fast, correct Python msgpack library supporting LiSE"
 edition = "2018"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/aviramha/ormsgpack"
@@ -24,7 +24,7 @@ include = [
 ]
 
 [lib]
-name = "ormsgpack"
+name = "lise_ormsgpack"
 crate-type = ["cdylib"]
 
 [features]

@@ -3,6 +3,26 @@
 version = 3
 
 [[package]]
+name = "LiSE_ormsgpack"
+version = "1.4.1"
+dependencies = [
+ "ahash",
+ "associative-cache",
+ "bytecount",
+ "encoding_rs",
+ "itoa",
+ "once_cell",
+ "pyo3",
+ "pyo3-build-config",
+ "rmp",
+ "rmp-serde",
+ "serde",
+ "serde_bytes",
+ "simdutf8",
+ "smallvec",
+]
+
+[[package]]
 name = "ahash"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -115,26 +135,6 @@ name = "once_cell"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
-
-[[package]]
-name = "ormsgpack"
-version = "1.4.1"
-dependencies = [
- "ahash",
- "associative-cache",
- "bytecount",
- "encoding_rs",
- "itoa",
- "once_cell",
- "pyo3",
- "pyo3-build-config",
- "rmp",
- "rmp-serde",
- "serde",
- "serde_bytes",
- "simdutf8",
- "smallvec",
-]
 
 [[package]]
 name = "packed_simd"

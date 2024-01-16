@@ -60,7 +60,7 @@ To install a wheel from PyPI:
 
 ```sh
 pip install --upgrade "pip>=20.3" # manylinux_x_y, universal2 wheel support
-pip install --upgrade ormsgpack
+pip install --upgrade lise_ormsgpack
 ```
 
 To build a wheel, see [packaging](#packaging).
@@ -70,16 +70,16 @@ To build a wheel, see [packaging](#packaging).
 This is an example of serializing, with options specified, and deserializing:
 
 ```python
->>> import ormsgpack, datetime, numpy
->>> data = {
-    "type": "job",
-    "created_at": datetime.datetime(1970, 1, 1),
-    "status": "🆗",
-    "payload": numpy.array([[1, 2], [3, 4]]),
+>> > import lise_ormsgpack, datetime, numpy
+>> > data = {
+   "type": "job",
+   "created_at": datetime.datetime(1970, 1, 1),
+   "status": "🆗",
+   "payload": numpy.array([[1, 2], [3, 4]]),
 }
->>> ormsgpack.packb(data, option=ormsgpack.OPT_NAIVE_UTC | ormsgpack.OPT_SERIALIZE_NUMPY)
+>> > lise_ormsgpack.packb(data, option=lise_ormsgpack.OPT_NAIVE_UTC | lise_ormsgpack.OPT_SERIALIZE_NUMPY)
 b'\x84\xa4type\xa3job\xaacreated_at\xb91970-01-01T00:00:00+00:00\xa6status\xa4\xf0\x9f\x86\x97\xa7payload\x92\x92\x01\x02\x92\x03\x04'
->>> ormsgpack.unpackb(_)
+>> > lise_ormsgpack.unpackb(_)
 {'type': 'job', 'created_at': '1970-01-01T00:00:00+00:00', 'status': '🆗', 'payload': [[1, 2], [3, 4]]}
 ```
 
@@ -137,19 +137,22 @@ lambda, or callable class instance. To specify that a type was not
 handled by `default`, raise an exception such as `TypeError`.
 
 ```python
->>> import ormsgpack, decimal
->>>
-def default(obj):
-    if isinstance(obj, decimal.Decimal):
-        return str(obj)
-    raise TypeError
+>> > import lise_ormsgpack, decimal
+>> >
 
->>> ormsgpack.packb(decimal.Decimal("0.0842389659712649442845"))
-MsgpackEncodeError: Type is not msgpack serializable: decimal.Decimal
->>> ormsgpack.packb(decimal.Decimal("0.0842389659712649442845"), default=default)
+def default(obj):
+   if isinstance(obj, decimal.Decimal):
+      return str(obj)
+   raise TypeError
+
+>> > lise_ormsgpack.packb(decimal.Decimal("0.0842389659712649442845"))
+MsgpackEncodeError: Type is not msgpack
+serializable: decimal.Decimal
+>> > lise_ormsgpack.packb(decimal.Decimal("0.0842389659712649442845"), default=default)
 b'\xb80.0842389659712649442845'
->>> ormsgpack.packb({1, 2}, default=default)
-ormsgpack.MsgpackEncodeError: Type is not msgpack serializable: set
+>> > lise_ormsgpack.packb({1, 2}, default=default)
+lise_ormsgpack.MsgpackEncodeError: Type is not msgpack
+serializable: set
 ```
 
 The `default` callable may return an object that itself
@@ -161,13 +164,14 @@ Python otherwise implicitly returns `None`, which appears to the caller
 like a legitimate value and is serialized:
 
 ```python
->>> import ormsgpack, json, rapidjson
->>>
-def default(obj):
-    if isinstance(obj, decimal.Decimal):
-        return str(obj)
+>> > import lise_ormsgpack, json, rapidjson
+>> >
 
->>> ormsgpack.unpackb(ormsgpack.packb({"set":{1, 2}}, default=default))
+def default(obj):
+   if isinstance(obj, decimal.Decimal):
+      return str(obj)
+
+>> > lise_ormsgpack.unpackb(lise_ormsgpack.packb({"set": {1, 2}}, default=default))
 {'set': None}
 ```
 
@@ -177,14 +181,15 @@ the range `[0, 127]` and a `bytes` object, defining the type and
 value, respectively.
 
 ```python
->>> import ormsgpack, decimal
->>>
-def default(obj):
-    if isinstance(obj, decimal.Decimal):
-        return ormsgpack.Ext(0, str(obj).encode())
-    raise TypeError
+>> > import lise_ormsgpack, decimal
+>> >
 
->>> ormsgpack.packb(decimal.Decimal("0.0842389659712649442845"), default=default)
+def default(obj):
+   if isinstance(obj, decimal.Decimal):
+      return lise_ormsgpack.Ext(0, str(obj).encode())
+   raise TypeError
+
+>> > lise_ormsgpack.packb(decimal.Decimal("0.0842389659712649442845"), default=default)
 b'\xc7\x18\x000.0842389659712649442845'
 ```
 
@@ -200,15 +205,15 @@ Serialize `datetime.datetime` objects without a `tzinfo` as UTC. This
 has no effect on `datetime.datetime` objects that have `tzinfo` set.
 
 ```python
->>> import ormsgpack, datetime
->>> ormsgpack.unpackb(ormsgpack.packb(
-        datetime.datetime(1970, 1, 1, 0, 0, 0),
-    ))
+>> > import lise_ormsgpack, datetime
+>> > lise_ormsgpack.unpackb(lise_ormsgpack.packb(
+   datetime.datetime(1970, 1, 1, 0, 0, 0),
+))
 "1970-01-01T00:00:00"
->>> ormsgpack.unpackb(ormsgpack.packb(
-        datetime.datetime(1970, 1, 1, 0, 0, 0),
-        option=ormsgpack.OPT_NAIVE_UTC,
-    ))
+>> > lise_ormsgpack.unpackb(lise_ormsgpack.packb(
+   datetime.datetime(1970, 1, 1, 0, 0, 0),
+   option=lise_ormsgpack.OPT_NAIVE_UTC,
+))
 "1970-01-01T00:00:00+00:00"
 ```
 
@@ -219,15 +224,15 @@ to be one of `str`, `int`, `float`, `bool`, `None`, `datetime.datetime`,
 `datetime.date`, `datetime.time`, `enum.Enum`, and `uuid.UUID`.
 
 ```python
->>> import ormsgpack, datetime, uuid
->>> ormsgpack.packb(
-        {uuid.UUID("7202d115-7ff3-4c81-a7c1-2a1f067b1ece"): [1, 2, 3]},
-        option=ormsgpack.OPT_NON_STR_KEYS,
-    )
->>> ormsgpack.packb(
-        {datetime.datetime(1970, 1, 1, 0, 0, 0): [1, 2, 3]},
-        option=ormsgpack.OPT_NON_STR_KEYS | ormsgpack.OPT_NAIVE_UTC,
-    )
+>> > import lise_ormsgpack, datetime, uuid
+>> > lise_ormsgpack.packb(
+   {uuid.UUID("7202d115-7ff3-4c81-a7c1-2a1f067b1ece"): [1, 2, 3]},
+   option=lise_ormsgpack.OPT_NON_STR_KEYS,
+)
+>> > lise_ormsgpack.packb(
+   {datetime.datetime(1970, 1, 1, 0, 0, 0): [1, 2, 3]},
+   option=lise_ormsgpack.OPT_NON_STR_KEYS | lise_ormsgpack.OPT_NAIVE_UTC,
+)
 ```
 
 These types are generally serialized how they would be as
@@ -248,14 +253,14 @@ Do not serialize the `microsecond` field on `datetime.datetime` and
 `datetime.time` instances.
 
 ```python
->>> import ormsgpack, datetime
->>> ormsgpack.packb(
-        datetime.datetime(1970, 1, 1, 0, 0, 0, 1),
-    )
->>> ormsgpack.packb(
-        datetime.datetime(1970, 1, 1, 0, 0, 0, 1),
-        option=ormsgpack.OPT_OMIT_MICROSECONDS,
-    )
+>> > import lise_ormsgpack, datetime
+>> > lise_ormsgpack.packb(
+   datetime.datetime(1970, 1, 1, 0, 0, 0, 1),
+)
+>> > lise_ormsgpack.packb(
+   datetime.datetime(1970, 1, 1, 0, 0, 0, 1),
+   option=lise_ormsgpack.OPT_OMIT_MICROSECONDS,
+)
 ```
 
 ##### OPT_PASSTHROUGH_BIG_INT
@@ -263,18 +268,21 @@ Do not serialize the `microsecond` field on `datetime.datetime` and
 Enables passthrough of big (Python) ints. By setting this option, one can set a `default` function for ints larger than 63 bits, smaller ints are still serialized efficiently.
 
 ```python
->>> import ormsgpack
->>> ormsgpack.packb(
-        2**65,
-    )
-TypeError: Integer exceeds 64-bit range
->>> ormsgpack.unpackb(
-        ormsgpack.packb(
-            2**65,
-            option=ormsgpack.OPT_PASSTHROUGH_BIG_INT,
-            default=lambda _: {"type": "bigint", "value": str(_) }
-        )
-    )
+>> > import lise_ormsgpack
+>> > lise_ormsgpack.packb(
+   2 ** 65,
+)
+TypeError: Integer
+exceeds
+64 - bit
+range
+>> > lise_ormsgpack.unpackb(
+   lise_ormsgpack.packb(
+      2 ** 65,
+      option=lise_ormsgpack.OPT_PASSTHROUGH_BIG_INT,
+      default=lambda _: {"type": "bigint", "value": str(_)}
+   )
+)
 {'type': 'bigint', 'value': '36893488147419103232'}
 ```
 
@@ -283,30 +291,32 @@ TypeError: Integer exceeds 64-bit range
 Passthrough `dataclasses.dataclass` instances to `default`. This allows
 customizing their output but is much slower.
 
-
 ```python
->>> import ormsgpack, dataclasses
->>>
+>> > import lise_ormsgpack, dataclasses
+>> >
+
 @dataclasses.dataclass
 class User:
-    id: str
-    name: str
-    password: str
+   id: str
+   name: str
+   password: str
+
 
 def default(obj):
-    if isinstance(obj, User):
-        return {"id": obj.id, "name": obj.name}
-    raise TypeError
+   if isinstance(obj, User):
+      return {"id": obj.id, "name": obj.name}
+   raise TypeError
 
->>> ormsgpack.packb(User("3b1", "asd", "zxc"))
+>> > lise_ormsgpack.packb(User("3b1", "asd", "zxc"))
 b'\x83\xa2id\xa33b1\xa4name\xa3asd\xa8password\xa3zxc'
->>> ormsgpack.packb(User("3b1", "asd", "zxc"), option=ormsgpack.OPT_PASSTHROUGH_DATACLASS)
-TypeError: Type is not msgpack serializable: User
->>> ormsgpack.packb(
-        User("3b1", "asd", "zxc"),
-        option=ormsgpack.OPT_PASSTHROUGH_DATACLASS,
-        default=default,
-    )
+>> > lise_ormsgpack.packb(User("3b1", "asd", "zxc"), option=lise_ormsgpack.OPT_PASSTHROUGH_DATACLASS)
+TypeError: Type is not msgpack
+serializable: User
+>> > lise_ormsgpack.packb(
+   User("3b1", "asd", "zxc"),
+   option=lise_ormsgpack.OPT_PASSTHROUGH_DATACLASS,
+   default=default,
+)
 b'\x82\xa2id\xa33b1\xa4name\xa3asd'
 ```
 
@@ -317,22 +327,24 @@ to `default`. This allows serializing datetimes to a custom format, e.g.,
 HTTP dates:
 
 ```python
->>> import ormsgpack, datetime
->>>
-def default(obj):
-    if isinstance(obj, datetime.datetime):
-        return obj.strftime("%a, %d %b %Y %H:%M:%S GMT")
-    raise TypeError
+>> > import lise_ormsgpack, datetime
+>> >
 
->>> ormsgpack.packb({"created_at": datetime.datetime(1970, 1, 1)})
+def default(obj):
+   if isinstance(obj, datetime.datetime):
+      return obj.strftime("%a, %d %b %Y %H:%M:%S GMT")
+   raise TypeError
+
+>> > lise_ormsgpack.packb({"created_at": datetime.datetime(1970, 1, 1)})
 b'\x81\xaacreated_at\xb31970-01-01T00:00:00'
->>> ormsgpack.packb({"created_at": datetime.datetime(1970, 1, 1)}, option=ormsgpack.OPT_PASSTHROUGH_DATETIME)
-TypeError: Type is not msgpack serializable: datetime.datetime
->>> ormsgpack.packb(
-        {"created_at": datetime.datetime(1970, 1, 1)},
-        option=ormsgpack.OPT_PASSTHROUGH_DATETIME,
-        default=default,
-    )
+>> > lise_ormsgpack.packb({"created_at": datetime.datetime(1970, 1, 1)}, option=lise_ormsgpack.OPT_PASSTHROUGH_DATETIME)
+TypeError: Type is not msgpack
+serializable: datetime.datetime
+>> > lise_ormsgpack.packb(
+   {"created_at": datetime.datetime(1970, 1, 1)},
+   option=lise_ormsgpack.OPT_PASSTHROUGH_DATETIME,
+   default=default,
+)
 b'\x81\xaacreated_at\xbdThu, 01 Jan 1970 00:00:00 GMT'
 ```
 
@@ -343,21 +355,24 @@ This does not affect datetimes in `dict` keys if using OPT_NON_STR_KEYS.
 Passthrough subclasses of builtin types to `default`.
 
 ```python
->>> import ormsgpack
->>>
+>> > import lise_ormsgpack
+>> >
+
 class Secret(str):
-    pass
+   pass
+
 
 def default(obj):
-    if isinstance(obj, Secret):
-        return "******"
-    raise TypeError
+   if isinstance(obj, Secret):
+      return "******"
+   raise TypeError
 
->>> ormsgpack.packb(Secret("zxc"))
+>> > lise_ormsgpack.packb(Secret("zxc"))
 b'\xa3zxc'
->>> ormsgpack.packb(Secret("zxc"), option=ormsgpack.OPT_PASSTHROUGH_SUBCLASS)
-TypeError: Type is not msgpack serializable: Secret
->>> ormsgpack.packb(Secret("zxc"), option=ormsgpack.OPT_PASSTHROUGH_SUBCLASS, default=default)
+>> > lise_ormsgpack.packb(Secret("zxc"), option=lise_ormsgpack.OPT_PASSTHROUGH_SUBCLASS)
+TypeError: Type is not msgpack
+serializable: Secret
+>> > lise_ormsgpack.packb(Secret("zxc"), option=lise_ormsgpack.OPT_PASSTHROUGH_SUBCLASS, default=default)
 b'\xa6******'
 ```
 
@@ -369,20 +384,20 @@ OPT_NON_STR_KEYS.
 Passthrough tuples to `default`.
 
 ```python
->>> import ormsgpack
->>> ormsgpack.unpackb(
-        ormsgpack.packb(
-            (9193, "test", 42),
-        )
-    )
+>> > import lise_ormsgpack
+>> > lise_ormsgpack.unpackb(
+   lise_ormsgpack.packb(
+      (9193, "test", 42),
+   )
+)
 [9193, 'test', 42]
->>> ormsgpack.unpackb(
-        ormsgpack.packb(
-            (9193, "test", 42),
-            option=ormsgpack.OPT_PASSTHROUGH_TUPLE,
-            default=lambda _: {"type": "tuple", "value": list(_)}
-        )
-    )
+>> > lise_ormsgpack.unpackb(
+   lise_ormsgpack.packb(
+      (9193, "test", 42),
+      option=lise_ormsgpack.OPT_PASSTHROUGH_TUPLE,
+      default=lambda _: {"type": "tuple", "value": list(_)}
+   )
+)
 {'type': 'tuple', 'value': [9193, 'test', 42]}
 ```
 
@@ -403,18 +418,18 @@ This can be used to ensure the order is deterministic for hashing or tests.
 It has a substantial performance penalty and is not recommended in general.
 
 ```python
->>> import ormsgpack
->>> ormsgpack.packb({"b": 1, "c": 2, "a": 3})
+>> > import lise_ormsgpack
+>> > lise_ormsgpack.packb({"b": 1, "c": 2, "a": 3})
 b'\x83\xa1b\x01\xa1c\x02\xa1a\x03'
->>> ormsgpack.packb({"b": 1, "c": 2, "a": 3}, option=ormsgpack.OPT_SORT_KEYS)
+>> > lise_ormsgpack.packb({"b": 1, "c": 2, "a": 3}, option=lise_ormsgpack.OPT_SORT_KEYS)
 b'\x83\xa1a\x03\xa1b\x01\xa1c\x02'
 ```
 
 The sorting is not collation/locale-aware:
 
 ```python
->>> import ormsgpack
->>> ormsgpack.packb({"a": 1, "ä": 2, "A": 3}, option=ormsgpack.OPT_SORT_KEYS)
+>> > import lise_ormsgpack
+>> > lise_ormsgpack.packb({"a": 1, "ä": 2, "A": 3}, option=lise_ormsgpack.OPT_SORT_KEYS)
 b'\x83\xa1A\x03\xa1a\x01\xa2\xc3\xa4\x02'
 ```
 
@@ -426,15 +441,15 @@ Serialize a UTC timezone on `datetime.datetime` instances as `Z` instead
 of `+00:00`.
 
 ```python
->>> import ormsgpack, datetime
->>> ormsgpack.packb(
-        datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
-    )
+>> > import lise_ormsgpack, datetime
+>> > lise_ormsgpack.packb(
+   datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
+)
 b'"1970-01-01T00:00:00+00:00"'
->>> ormsgpack.packb(
-        datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
-        option=ormsgpack.OPT_UTC_Z
-    )
+>> > lise_ormsgpack.packb(
+   datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
+   option=lise_ormsgpack.OPT_UTC_Z
+)
 b'"1970-01-01T00:00:00Z"'
 ```
 
@@ -471,17 +486,18 @@ argument. The value should be a callable and is invoked with the
 extension type and value as arguments.
 
 ```python
->>> import ormsgpack, decimal
->>>
-def ext_hook(tag, data):
-    if tag == 0:
-        return decimal.Decimal(data.decode())
-    raise TypeError
+>> > import lise_ormsgpack, decimal
+>> >
 
->>> ormsgpack.packb(
-    ormsgpack.Ext(0, str(decimal.Decimal("0.0842389659712649442845")).encode())
+def ext_hook(tag, data):
+   if tag == 0:
+      return decimal.Decimal(data.decode())
+   raise TypeError
+
+>> > lise_ormsgpack.packb(
+   lise_ormsgpack.Ext(0, str(decimal.Decimal("0.0842389659712649442845")).encode())
 )
->>> ormsgpack.unpackb(_, ext_hook=ext_hook)
+>> > lise_ormsgpack.unpackb(_, ext_hook=ext_hook)
 Decimal('0.0842389659712649442845')
 ```
 
@@ -506,20 +522,22 @@ Dataclasses are serialized as maps, with every attribute serialized and in
 the order given on class definition:
 
 ```python
->>> import dataclasses, ormsgpack, typing
+>> > import dataclasses, lise_ormsgpack, typing
+
 
 @dataclasses.dataclass
 class Member:
-    id: int
-    active: bool = dataclasses.field(default=False)
+   id: int
+   active: bool = dataclasses.field(default=False)
+
 
 @dataclasses.dataclass
 class Object:
-    id: int
-    name: str
-    members: typing.List[Member]
+   id: int
+   name: str
+   members: typing.List[Member]
 
->>> ormsgpack.packb(Object(1, "a", [Member(1, True), Member(2)]))
+>> > lise_ormsgpack.packb(Object(1, "a", [Member(1, True), Member(2)]))
 b'\x83\xa2id\x01\xa4name\xa1a\xa7members\x92\x82\xa2id\x01\xa6active\xc3\x82\xa2id\x02\xa6active\xc2'
 ```
 #### Performance
@@ -542,21 +560,21 @@ e.g., "1970-01-01T00:00:00+00:00". This is a subset of ISO 8601 and is
 compatible with `isoformat()` in the standard library.
 
 ```python
->>> import ormsgpack, datetime, zoneinfo
->>> ormsgpack.packb(
-    datetime.datetime(2018, 12, 1, 2, 3, 4, 9, tzinfo=zoneinfo.ZoneInfo('Australia/Adelaide'))
+>> > import lise_ormsgpack, datetime, zoneinfo
+>> > lise_ormsgpack.packb(
+   datetime.datetime(2018, 12, 1, 2, 3, 4, 9, tzinfo=zoneinfo.ZoneInfo('Australia/Adelaide'))
 )
->>> ormsgpack.unpackb(_)
+>> > lise_ormsgpack.unpackb(_)
 "2018-12-01T02:03:04.000009+10:30"
->>> ormsgpack.packb(
-    datetime.datetime.fromtimestamp(4123518902).replace(tzinfo=datetime.timezone.utc)
+>> > lise_ormsgpack.packb(
+   datetime.datetime.fromtimestamp(4123518902).replace(tzinfo=datetime.timezone.utc)
 )
->>> ormsgpack.unpackb(_)
+>> > lise_ormsgpack.unpackb(_)
 "2100-09-01T21:55:02+00:00"
->>> ormsgpack.packb(
-    datetime.datetime.fromtimestamp(4123518902)
+>> > lise_ormsgpack.packb(
+   datetime.datetime.fromtimestamp(4123518902)
 )
->>> ormsgpack.unpackb(_)
+>> > lise_ormsgpack.unpackb(_)
 "2100-09-01T21:55:02"
 ```
 
@@ -568,18 +586,18 @@ module, or a timezone instance from the third-party `pendulum`, `pytz`, or
 `datetime.time` objects must not have a `tzinfo`.
 
 ```python
->>> import ormsgpack, datetime
->>> ormsgpack.packb(datetime.time(12, 0, 15, 290))
->>> ormsgpack.unpackb(_)
+>> > import lise_ormsgpack, datetime
+>> > lise_ormsgpack.packb(datetime.time(12, 0, 15, 290))
+>> > lise_ormsgpack.unpackb(_)
 "12:00:15.000290"
 ```
 
 `datetime.date` objects will always serialize.
 
 ```python
->>> import ormsgpack, datetime
->>> ormsgpack.packb(datetime.date(1900, 1, 2))
->>> ormsgpack.unpackb(_)
+>> > import lise_ormsgpack, datetime
+>> > lise_ormsgpack.packb(datetime.date(1900, 1, 2))
+>> > lise_ormsgpack.unpackb(_)
 "1900-01-02"
 ```
 
@@ -598,15 +616,17 @@ To assume datetimes without timezone are UTC, use the option `ormsgpack.OPT_NAIV
 ormsgpack serializes enums natively. Options apply to their values.
 
 ```python
->>> import enum, datetime, ormsgpack
->>>
+>> > import enum, datetime, lise_ormsgpack
+>> >
+
 class DatetimeEnum(enum.Enum):
-    EPOCH = datetime.datetime(1970, 1, 1, 0, 0, 0)
->>> ormsgpack.packb(DatetimeEnum.EPOCH)
->>> ormsgpack.unpackb(_)
+   EPOCH = datetime.datetime(1970, 1, 1, 0, 0, 0)
+
+>> > lise_ormsgpack.packb(DatetimeEnum.EPOCH)
+>> > lise_ormsgpack.unpackb(_)
 "1970-01-01T00:00:00"
->>> ormsgpack.packb(DatetimeEnum.EPOCH, option=ormsgpack.OPT_NAIVE_UTC)
->>> ormsgpack.unpackb(_)
+>> > lise_ormsgpack.packb(DatetimeEnum.EPOCH, option=lise_ormsgpack.OPT_NAIVE_UTC)
+>> > lise_ormsgpack.unpackb(_)
 "1970-01-01T00:00:00+00:00"
 ```
 
@@ -614,22 +634,25 @@ Enums with members that are not supported types can be serialized using
 `default`:
 
 ```python
->>> import enum, ormsgpack
->>>
+>> > import enum, lise_ormsgpack
+>> >
+
 class Custom:
-    def __init__(self, val):
-        self.val = val
+   def __init__(self, val):
+      self.val = val
+
 
 def default(obj):
-    if isinstance(obj, Custom):
-        return obj.val
-    raise TypeError
+   if isinstance(obj, Custom):
+      return obj.val
+   raise TypeError
+
 
 class CustomEnum(enum.Enum):
-    ONE = Custom(1)
+   ONE = Custom(1)
 
->>> ormsgpack.packb(CustomEnum.ONE, default=default)
->>> ormsgpack.unpackb(_)
+>> > lise_ormsgpack.packb(CustomEnum.ONE, default=default)
+>> > lise_ormsgpack.unpackb(_)
 1
 ```
 
@@ -658,13 +681,13 @@ numpy instances. Serializing numpy data requires specifying
 `option=ormsgpack.OPT_SERIALIZE_NUMPY`.
 
 ```python
->>> import ormsgpack, numpy
->>> ormsgpack.packb(
-        numpy.array([[1, 2, 3], [4, 5, 6]]),
-        option=ormsgpack.OPT_SERIALIZE_NUMPY,
+>> > import lise_ormsgpack, numpy
+>> > lise_ormsgpack.packb(
+   numpy.array([[1, 2, 3], [4, 5, 6]]),
+   option=lise_ormsgpack.OPT_SERIALIZE_NUMPY,
 )
->>> ormsgpack.unpackb(_)
-[[1,2,3],[4,5,6]]
+>> > lise_ormsgpack.unpackb(_)
+[[1, 2, 3], [4, 5, 6]]
 ```
 
 The array must be a contiguous C array (`C_CONTIGUOUS`) and one of the

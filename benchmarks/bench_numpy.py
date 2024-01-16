@@ -2,7 +2,7 @@ import msgpack
 import numpy
 import pytest
 
-import ormsgpack
+import lise_ormsgpack
 
 DATA_TYPES = {
     "int32": numpy.random.randint(
@@ -35,4 +35,4 @@ def test_numpy_msgpack(benchmark, data_type):
 def test_numpy_ormsgpack(benchmark, data_type):
     benchmark.group = f"numpy {data_type}"
     data = DATA_TYPES[data_type]
-    benchmark(ormsgpack.packb, data, option=ormsgpack.OPT_SERIALIZE_NUMPY)
+    benchmark(lise_ormsgpack.packb, data, option=lise_ormsgpack.OPT_SERIALIZE_NUMPY)

@@ -3,7 +3,7 @@ from typing import List
 
 import msgpack
 
-import ormsgpack
+import lise_ormsgpack
 
 
 @dataclasses.dataclass
@@ -37,4 +37,4 @@ def test_dataclass_msgpack(benchmark):
 
 def test_dataclass_ormsgpack(benchmark):
     benchmark.group = "dataclass"
-    benchmark(ormsgpack.packb, objects_as_dataclass)
+    benchmark(lise_ormsgpack.packb, objects_as_dataclass)

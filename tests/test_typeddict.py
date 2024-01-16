@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import ormsgpack
+import lise_ormsgpack
 
 try:
     from typing import TypedDict
@@ -19,4 +19,4 @@ def test_typeddict():
 
     obj = TypedDict1(a="a", b=1)
 
-    assert ormsgpack.unpackb(ormsgpack.packb(obj)) == {"a": "a", "b": 1}
+    assert lise_ormsgpack.unpackb(lise_ormsgpack.packb(obj)) == {"a": "a", "b": 1}

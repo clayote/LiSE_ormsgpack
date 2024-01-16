@@ -3,7 +3,7 @@ from typing import List
 import msgpack
 from pydantic import BaseModel
 
-import ormsgpack
+import lise_ormsgpack
 
 
 class Member(BaseModel):
@@ -38,5 +38,5 @@ def test_pydantic_msgpack(benchmark):
 def test_pydantic_ormsgpack(benchmark):
     benchmark.group = "pydantic"
     benchmark(
-        ormsgpack.packb, objects_as_pydantic, option=ormsgpack.OPT_SERIALIZE_PYDANTIC
+        lise_ormsgpack.packb, objects_as_pydantic, option=lise_ormsgpack.OPT_SERIALIZE_PYDANTIC
     )

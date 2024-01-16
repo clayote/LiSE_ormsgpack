@@ -5,7 +5,7 @@ import uuid
 import msgpack
 import pytest
 
-import ormsgpack
+import lise_ormsgpack
 
 
 class Custom:
@@ -36,14 +36,14 @@ def test_default_not_callable():
     """
     packb() default not callable
     """
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb(Custom(), default=NotImplementedError)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb(Custom(), default=NotImplementedError)
 
     ran = False
     try:
-        ormsgpack.packb(Custom(), default=NotImplementedError)
+        lise_ormsgpack.packb(Custom(), default=NotImplementedError)
     except Exception as err:
-        assert isinstance(err, ormsgpack.MsgpackEncodeError)
+        assert isinstance(err, lise_ormsgpack.MsgpackEncodeError)
         assert str(err) == "default serializer exceeds recursion limit"
         ran = True
     assert ran
@@ -58,14 +58,14 @@ def test_default_func():
     def default(obj):
         return str(obj)
 
-    assert ormsgpack.packb(ref, default=default) == msgpack.packb(str(ref))
+    assert lise_ormsgpack.packb(ref, default=default) == msgpack.packb(str(ref))
 
 
 def test_default_func_none():
     """
     packb() default function None ok
     """
-    assert ormsgpack.packb(Custom(), default=lambda x: None) == ormsgpack.packb(
+    assert lise_ormsgpack.packb(Custom(), default=lambda x: None) == lise_ormsgpack.packb(
         Custom(), default=lambda x: None
     )
 
@@ -80,8 +80,8 @@ def test_default_func_empty():
         if isinstance(obj, set):
             return list(obj)
 
-    assert ormsgpack.packb(ref, default=default) == msgpack.packb(None)
-    assert ormsgpack.packb({ref}, default=default) == msgpack.packb([None])
+    assert lise_ormsgpack.packb(ref, default=default) == msgpack.packb(None)
+    assert lise_ormsgpack.packb({ref}, default=default) == msgpack.packb([None])
 
 
 def test_default_func_exc():
@@ -92,14 +92,14 @@ def test_default_func_exc():
     def default(obj):
         raise NotImplementedError
 
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb(Custom(), default=default)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb(Custom(), default=default)
 
     ran = False
     try:
-        ormsgpack.packb(Custom(), default=default)
+        lise_ormsgpack.packb(Custom(), default=default)
     except Exception as err:
-        assert isinstance(err, ormsgpack.MsgpackEncodeError)
+        assert isinstance(err, lise_ormsgpack.MsgpackEncodeError)
         assert str(err) == "Type is not msgpack serializable: Custom"
         ran = True
     assert ran
@@ -107,12 +107,12 @@ def test_default_func_exc():
 
 def test_default_exception_type():
     """
-    packb() TypeError in default() raises ormsgpack.MsgpackEncodeError
+    packb() TypeError in default() raises lise_ormsgpack.MsgpackEncodeError
     """
     ref = Custom()
 
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb(ref, default=default_raises)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb(ref, default=default_raises)
 
 
 def test_default_func_nested_str():
@@ -124,7 +124,7 @@ def test_default_func_nested_str():
     def default(obj):
         return str(obj)
 
-    assert ormsgpack.packb({"a": ref}, default=default) == msgpack.packb(
+    assert lise_ormsgpack.packb({"a": ref}, default=default) == msgpack.packb(
         {"a": str(ref)}
     )
 
@@ -139,7 +139,7 @@ def test_default_func_list():
         if isinstance(obj, Custom):
             return [str(obj)]
 
-    assert ormsgpack.packb({"a": ref}, default=default) == msgpack.packb(
+    assert lise_ormsgpack.packb({"a": ref}, default=default) == msgpack.packb(
         {"a": ref}, default=default
     )
 
@@ -153,7 +153,7 @@ def test_default_func_nested_list():
     def default(obj):
         return str(obj)
 
-    assert ormsgpack.packb([ref] * 100, default=default) == msgpack.packb(
+    assert lise_ormsgpack.packb([ref] * 100, default=default) == msgpack.packb(
         [ref] * 100, default=default
     )
 
@@ -167,14 +167,14 @@ def test_default_func_bytes():
     def default(obj):
         return bytes(obj)
 
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb(ref, default=default)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb(ref, default=default)
 
     ran = False
     try:
-        ormsgpack.packb(ref, default=default)
+        lise_ormsgpack.packb(ref, default=default)
     except Exception as err:
-        assert isinstance(err, ormsgpack.MsgpackEncodeError)
+        assert isinstance(err, lise_ormsgpack.MsgpackEncodeError)
         assert str(err) == "Type is not msgpack serializable: Custom"
         ran = True
     assert ran
@@ -189,8 +189,8 @@ def test_default_func_invalid_str():
     def default(obj):
         return "\ud800"
 
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb(ref, default=default)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb(ref, default=default)
 
 
 def test_default_lambda_ok():
@@ -198,7 +198,7 @@ def test_default_lambda_ok():
     packb() default lambda
     """
     ref = Custom()
-    assert ormsgpack.packb(ref, default=lambda x: str(x)) == msgpack.packb(
+    assert lise_ormsgpack.packb(ref, default=lambda x: str(x)) == msgpack.packb(
         ref, default=lambda x: str(x)
     )
 
@@ -220,7 +220,7 @@ def test_default_callable_ok():
     ref_obj = Custom()
     ref_bytes = str(ref_obj)
     for obj in [ref_obj] * 100:
-        assert ormsgpack.packb(obj, default=CustomSerializer()) == msgpack.packb(
+        assert lise_ormsgpack.packb(obj, default=CustomSerializer()) == msgpack.packb(
             ref_bytes
         )
 
@@ -229,14 +229,14 @@ def test_default_recursion():
     """
     packb() default recursion limit
     """
-    assert ormsgpack.packb(Recursive(254), default=default) == msgpack.packb(0)
+    assert lise_ormsgpack.packb(Recursive(254), default=default) == msgpack.packb(0)
 
 
 def test_default_recursion_reset():
     """
     packb() default recursion limit reset
     """
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         [Recursive(254), {"a": "b"}, Recursive(254), Recursive(254)],
         default=default,
     ) == msgpack.packb([0, {"a": "b"}, 0, 0])
@@ -251,5 +251,5 @@ def test_default_recursion_infinite():
     def default(obj):
         return obj
 
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb(ref, default=default)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb(ref, default=default)

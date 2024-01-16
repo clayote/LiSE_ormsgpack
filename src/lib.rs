@@ -47,7 +47,7 @@ macro_rules! module_add_int {
 #[allow(non_snake_case)]
 #[no_mangle]
 #[cold]
-pub unsafe extern "C" fn PyInit_ormsgpack() -> *mut PyModuleDef {
+pub unsafe extern "C" fn PyInit_lise_ormsgpack() -> *mut PyModuleDef {
     let methods: Box<[PyMethodDef; 3]> = Box::new([
         PyMethodDef {
             ml_name: "packb\0".as_ptr() as *const c_char,
@@ -81,7 +81,7 @@ pub unsafe extern "C" fn PyInit_ormsgpack() -> *mut PyModuleDef {
 
     let init = Box::new(PyModuleDef {
         m_base: PyModuleDef_HEAD_INIT,
-        m_name: "ormsgpack\0".as_ptr() as *const c_char,
+        m_name: "lise_ormsgpack\0".as_ptr() as *const c_char,
         m_doc: std::ptr::null(),
         m_size: 0,
         m_methods: Box::into_raw(methods) as *mut PyMethodDef,

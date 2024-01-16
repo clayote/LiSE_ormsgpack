@@ -1,27 +1,27 @@
 import msgpack
 import pytest
 
-import ormsgpack
+import lise_ormsgpack
 
 
 def test_ext_type():
     tag = 1
     data = b"test"
-    packed = ormsgpack.packb(ormsgpack.Ext(tag, data))
+    packed = lise_ormsgpack.packb(lise_ormsgpack.Ext(tag, data))
     assert packed == msgpack.packb(msgpack.ExtType(tag, data))
 
-    unpacked = ormsgpack.unpackb(
+    unpacked = lise_ormsgpack.unpackb(
         packed,
         ext_hook=lambda x, y: (x, y),
     )
     assert unpacked == (tag, data)
 
-    unpacked = ormsgpack.unpackb(
+    unpacked = lise_ormsgpack.unpackb(
         packed,
         ext_hook=lambda x, y: (x, y),
-        option=ormsgpack.OPT_NON_STR_KEYS,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS,
     )
     assert unpacked == (tag, data)
 
-    with pytest.raises(ormsgpack.MsgpackDecodeError):
-        ormsgpack.unpackb(packed)
+    with pytest.raises(lise_ormsgpack.MsgpackDecodeError):
+        lise_ormsgpack.unpackb(packed)

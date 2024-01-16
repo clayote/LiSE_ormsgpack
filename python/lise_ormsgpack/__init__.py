@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from .ormsgpack import *
-from .ormsgpack import __version__
+from .lise_ormsgpack import *
+from .lise_ormsgpack import __version__
 
 __all__ = (
     "__version__",

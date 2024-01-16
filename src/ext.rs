@@ -69,7 +69,7 @@ pub unsafe fn create_ext_type() -> *mut PyTypeObject {
         },
     ];
     let mut spec = PyType_Spec {
-        name: "ormsgpack.Ext\0".as_ptr() as *const c_char,
+        name: "lise_ormsgpack.Ext\0".as_ptr() as *const c_char,
         basicsize: std::mem::size_of::<Ext>() as c_int,
         itemsize: 0,
         flags: Py_TPFLAGS_DEFAULT as c_uint,

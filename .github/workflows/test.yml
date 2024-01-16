@@ -38,7 +38,7 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
       - run: maturin build --release --strip --manylinux off -i $pythonLocation"python.exe"
         if: ${{ runner.os == 'Windows' }}
-      - run: pip install ormsgpack --no-index -f target/wheels
+      - run: pip install lise_ormsgpack --no-index -f target/wheels
       - run: pytest tests/
 
   fmt:

@@ -8,7 +8,7 @@ import msgpack
 import pytest
 import pytz
 
-import ormsgpack
+import lise_ormsgpack
 
 
 class SubStr(str):
@@ -16,8 +16,8 @@ class SubStr(str):
 
 
 def test_dict_keys_substr():
-    assert ormsgpack.packb(
-        {SubStr("aaa"): True}, option=ormsgpack.OPT_NON_STR_KEYS
+    assert lise_ormsgpack.packb(
+        {SubStr("aaa"): True}, option=lise_ormsgpack.OPT_NON_STR_KEYS
     ) == msgpack.packb({"aaa": True})
 
 
@@ -25,9 +25,9 @@ def test_dict_keys_substr_passthrough():
     """
     OPT_PASSTHROUGH_SUBCLASS does not affect OPT_NON_STR_KEYS
     """
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         {SubStr("aaa"): True},
-        option=ormsgpack.OPT_NON_STR_KEYS | ormsgpack.OPT_PASSTHROUGH_SUBCLASS,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS | lise_ormsgpack.OPT_PASSTHROUGH_SUBCLASS,
     ) == msgpack.packb({"aaa": True})
 
 
@@ -35,17 +35,17 @@ def test_dict_keys_int_range_valid_i64():
     """
     OPT_NON_STR_KEYS has a i64 range for int, valid
     """
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         {9223372036854775807: True},
-        option=ormsgpack.OPT_NON_STR_KEYS,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS,
     ) == msgpack.packb({9223372036854775807: True})
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         {-9223372036854775807: True},
-        option=ormsgpack.OPT_NON_STR_KEYS,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS,
     ) == msgpack.packb({-9223372036854775807: True})
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         {9223372036854775809: True},
-        option=ormsgpack.OPT_NON_STR_KEYS,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS,
     ) == msgpack.packb({9223372036854775809: True})
 
 
@@ -54,13 +54,13 @@ def test_dict_keys_int_range_valid_u64():
     OPT_NON_STR_KEYS has a u64 range for int, valid
     """
     obj = {0: True}
-    packed = ormsgpack.packb(obj, option=ormsgpack.OPT_NON_STR_KEYS)
+    packed = lise_ormsgpack.packb(obj, option=lise_ormsgpack.OPT_NON_STR_KEYS)
     assert packed == msgpack.packb(obj)
-    assert obj == ormsgpack.unpackb(packed, option=ormsgpack.OPT_NON_STR_KEYS)
+    assert obj == lise_ormsgpack.unpackb(packed, option=lise_ormsgpack.OPT_NON_STR_KEYS)
 
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         {18446744073709551615: True},
-        option=ormsgpack.OPT_NON_STR_KEYS,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS,
     ) == msgpack.packb({18446744073709551615: True})
 
 
@@ -68,55 +68,55 @@ def test_dict_keys_int_range_invalid():
     """
     OPT_NON_STR_KEYS has a range of i64::MIN to u64::MAX
     """
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb({-9223372036854775809: True}, option=ormsgpack.OPT_NON_STR_KEYS)
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb({18446744073709551616: True}, option=ormsgpack.OPT_NON_STR_KEYS)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb({-9223372036854775809: True}, option=lise_ormsgpack.OPT_NON_STR_KEYS)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb({18446744073709551616: True}, option=lise_ormsgpack.OPT_NON_STR_KEYS)
 
 
 def test_dict_keys_float():
     obj = {1.1: True, 2.2: False}
-    packed = ormsgpack.packb(obj, option=ormsgpack.OPT_NON_STR_KEYS)
+    packed = lise_ormsgpack.packb(obj, option=lise_ormsgpack.OPT_NON_STR_KEYS)
     assert packed == msgpack.packb(obj)
-    assert obj == ormsgpack.unpackb(packed, option=ormsgpack.OPT_NON_STR_KEYS)
+    assert obj == lise_ormsgpack.unpackb(packed, option=lise_ormsgpack.OPT_NON_STR_KEYS)
 
 
 def test_dict_keys_inf():
-    assert ormsgpack.packb(
-        {float("Infinity"): True}, option=ormsgpack.OPT_NON_STR_KEYS
+    assert lise_ormsgpack.packb(
+        {float("Infinity"): True}, option=lise_ormsgpack.OPT_NON_STR_KEYS
     ) == msgpack.packb({float("Infinity"): True})
-    assert ormsgpack.packb(
-        {float("-Infinity"): True}, option=ormsgpack.OPT_NON_STR_KEYS
+    assert lise_ormsgpack.packb(
+        {float("-Infinity"): True}, option=lise_ormsgpack.OPT_NON_STR_KEYS
     ) == msgpack.packb({float("-Infinity"): True})
 
 
 def test_dict_keys_nan():
-    assert ormsgpack.packb(
-        {float("NaN"): True}, option=ormsgpack.OPT_NON_STR_KEYS
+    assert lise_ormsgpack.packb(
+        {float("NaN"): True}, option=lise_ormsgpack.OPT_NON_STR_KEYS
     ) == msgpack.packb({float("NaN"): True})
 
 
 def test_dict_keys_bool():
     obj = {True: True, False: False}
-    packed = ormsgpack.packb(obj, option=ormsgpack.OPT_NON_STR_KEYS)
+    packed = lise_ormsgpack.packb(obj, option=lise_ormsgpack.OPT_NON_STR_KEYS)
     assert packed == msgpack.packb(obj)
-    assert ormsgpack.unpackb(packed, option=ormsgpack.OPT_NON_STR_KEYS) == obj
+    assert lise_ormsgpack.unpackb(packed, option=lise_ormsgpack.OPT_NON_STR_KEYS) == obj
 
 
 def test_dict_keys_datetime():
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         {datetime.datetime(2000, 1, 1, 2, 3, 4, 123): True},
-        option=ormsgpack.OPT_NON_STR_KEYS,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS,
     ) == msgpack.packb({"2000-01-01T02:03:04.000123": True})
 
 
 def test_dict_keys_datetime_opt():
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         {datetime.datetime(2000, 1, 1, 2, 3, 4, 123): True},
-        option=ormsgpack.OPT_NON_STR_KEYS
-        | ormsgpack.OPT_OMIT_MICROSECONDS
-        | ormsgpack.OPT_NAIVE_UTC
-        | ormsgpack.OPT_UTC_Z,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS
+               | lise_ormsgpack.OPT_OMIT_MICROSECONDS
+               | lise_ormsgpack.OPT_NAIVE_UTC
+               | lise_ormsgpack.OPT_UTC_Z,
     ) == msgpack.packb({"2000-01-01T02:03:04Z": True})
 
 
@@ -124,9 +124,9 @@ def test_dict_keys_datetime_passthrough():
     """
     OPT_PASSTHROUGH_DATETIME does not affect OPT_NON_STR_KEYS
     """
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         {datetime.datetime(2000, 1, 1, 2, 3, 4, 123): True},
-        option=ormsgpack.OPT_NON_STR_KEYS | ormsgpack.OPT_PASSTHROUGH_DATETIME,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS | lise_ormsgpack.OPT_PASSTHROUGH_DATETIME,
     ) == msgpack.packb({"2000-01-01T02:03:04.000123": True})
 
 
@@ -134,34 +134,34 @@ def test_dict_keys_uuid():
     """
     OPT_NON_STR_KEYS always serializes UUID as keys
     """
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         {uuid.UUID("7202d115-7ff3-4c81-a7c1-2a1f067b1ece"): True},
-        option=ormsgpack.OPT_NON_STR_KEYS,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS,
     ) == msgpack.packb({"7202d115-7ff3-4c81-a7c1-2a1f067b1ece": True})
 
 
 def test_dict_keys_date():
-    assert ormsgpack.packb(
-        {datetime.date(1970, 1, 1): True}, option=ormsgpack.OPT_NON_STR_KEYS
+    assert lise_ormsgpack.packb(
+        {datetime.date(1970, 1, 1): True}, option=lise_ormsgpack.OPT_NON_STR_KEYS
     ) == msgpack.packb({"1970-01-01": True})
 
 
 def test_dict_keys_time():
-    assert ormsgpack.packb(
+    assert lise_ormsgpack.packb(
         {datetime.time(12, 15, 59, 111): True},
-        option=ormsgpack.OPT_NON_STR_KEYS,
+        option=lise_ormsgpack.OPT_NON_STR_KEYS,
     ) == msgpack.packb({"12:15:59.000111": True})
 
 
 def test_dict_non_str_and_sort_keys():
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb(
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb(
             {
                 datetime.date(1970, 1, 3): 3,
                 datetime.date(1970, 1, 5): 2,
                 "other": 1,
             },
-            option=ormsgpack.OPT_NON_STR_KEYS | ormsgpack.OPT_SORT_KEYS,
+            option=lise_ormsgpack.OPT_NON_STR_KEYS | lise_ormsgpack.OPT_SORT_KEYS,
         )
 
 
@@ -170,13 +170,13 @@ def test_dict_keys_time_err():
     OPT_NON_STR_KEYS propagates errors in types
     """
     val = datetime.time(12, 15, 59, 111, tzinfo=pytz.timezone("Asia/Shanghai"))
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb({val: True}, option=ormsgpack.OPT_NON_STR_KEYS)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb({val: True}, option=lise_ormsgpack.OPT_NON_STR_KEYS)
 
 
 def test_dict_keys_str():
-    assert ormsgpack.packb(
-        {"1": True}, option=ormsgpack.OPT_NON_STR_KEYS
+    assert lise_ormsgpack.packb(
+        {"1": True}, option=lise_ormsgpack.OPT_NON_STR_KEYS
     ) == msgpack.packb({"1": True})
 
 
@@ -185,8 +185,8 @@ def test_dict_keys_type():
         a: str
 
     val = Obj()
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb({val: True}, option=ormsgpack.OPT_NON_STR_KEYS)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb({val: True}, option=lise_ormsgpack.OPT_NON_STR_KEYS)
 
 
 def test_dict_keys_dataclass_hash():
@@ -198,29 +198,29 @@ def test_dict_keys_dataclass_hash():
             return 1
 
     obj = {Dataclass("a"): True}
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb(obj, option=ormsgpack.OPT_NON_STR_KEYS)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb(obj, option=lise_ormsgpack.OPT_NON_STR_KEYS)
 
 
 def test_dict_keys_tuple():
     obj = {(): True}
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb(obj)
-    packed = ormsgpack.packb(obj, option=ormsgpack.OPT_NON_STR_KEYS)
-    with pytest.raises(ormsgpack.MsgpackDecodeError):
-        ormsgpack.unpackb(packed)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb(obj)
+    packed = lise_ormsgpack.packb(obj, option=lise_ormsgpack.OPT_NON_STR_KEYS)
+    with pytest.raises(lise_ormsgpack.MsgpackDecodeError):
+        lise_ormsgpack.unpackb(packed)
     assert (
-        ormsgpack.unpackb(
+            lise_ormsgpack.unpackb(
             packed,
-            option=ormsgpack.OPT_NON_STR_KEYS,
+            option=lise_ormsgpack.OPT_NON_STR_KEYS,
         )
-        == obj
+            == obj
     )
 
 
 def test_dict_keys_unknown():
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb({frozenset(): True}, option=ormsgpack.OPT_NON_STR_KEYS)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb({frozenset(): True}, option=lise_ormsgpack.OPT_NON_STR_KEYS)
 
 
 def test_dict_keys_no_str_call():
@@ -231,16 +231,16 @@ def test_dict_keys_no_str_call():
             return "Obj"
 
     val = Obj()
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb({val: True}, option=ormsgpack.OPT_NON_STR_KEYS)
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb({val: True}, option=lise_ormsgpack.OPT_NON_STR_KEYS)
 
 
 def test_dict_keys_bytes():
     data = {b"test": b"lala"}
     assert (
-        ormsgpack.unpackb(
-            ormsgpack.packb(data, option=ormsgpack.OPT_NON_STR_KEYS),
-            option=ormsgpack.OPT_NON_STR_KEYS,
+            lise_ormsgpack.unpackb(
+            lise_ormsgpack.packb(data, option=lise_ormsgpack.OPT_NON_STR_KEYS),
+            option=lise_ormsgpack.OPT_NON_STR_KEYS,
         )
-        == data
+            == data
     )

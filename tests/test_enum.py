@@ -6,7 +6,7 @@ import enum
 import msgpack
 import pytest
 
-import ormsgpack
+import lise_ormsgpack
 
 
 class StrEnum(str, enum.Enum):
@@ -70,48 +70,48 @@ def test_cannot_subclass():
 
 
 def test_arbitrary_enum():
-    assert ormsgpack.packb(UnspecifiedEnum.A) == msgpack.packb("a")
-    assert ormsgpack.packb(UnspecifiedEnum.B) == msgpack.packb(1)
-    assert ormsgpack.packb(UnspecifiedEnum.C) == msgpack.packb(1.1)
-    assert ormsgpack.packb(UnspecifiedEnum.D) == msgpack.packb({"d": 1})
+    assert lise_ormsgpack.packb(UnspecifiedEnum.A) == msgpack.packb("a")
+    assert lise_ormsgpack.packb(UnspecifiedEnum.B) == msgpack.packb(1)
+    assert lise_ormsgpack.packb(UnspecifiedEnum.C) == msgpack.packb(1.1)
+    assert lise_ormsgpack.packb(UnspecifiedEnum.D) == msgpack.packb({"d": 1})
 
 
 def test_custom_enum():
-    assert ormsgpack.packb(UnspecifiedEnum.E, default=default) == msgpack.packb("c")
+    assert lise_ormsgpack.packb(UnspecifiedEnum.E, default=default) == msgpack.packb("c")
 
 
 def test_enum_options():
-    assert ormsgpack.packb(
-        UnspecifiedEnum.F, option=ormsgpack.OPT_NAIVE_UTC
+    assert lise_ormsgpack.packb(
+        UnspecifiedEnum.F, option=lise_ormsgpack.OPT_NAIVE_UTC
     ) == msgpack.packb("1970-01-01T00:00:00+00:00")
 
 
 def test_int_enum():
-    assert ormsgpack.packb(IntEnum.ONE) == msgpack.packb(1)
+    assert lise_ormsgpack.packb(IntEnum.ONE) == msgpack.packb(1)
 
 
 def test_intenum_enum():
-    assert ormsgpack.packb(IntEnumEnum.ONE) == msgpack.packb(1)
+    assert lise_ormsgpack.packb(IntEnumEnum.ONE) == msgpack.packb(1)
 
 
 def test_intflag_enum():
-    assert ormsgpack.packb(IntFlagEnum.ONE) == msgpack.packb(1)
+    assert lise_ormsgpack.packb(IntFlagEnum.ONE) == msgpack.packb(1)
 
 
 def test_flag_enum():
-    assert ormsgpack.packb(FlagEnum.ONE) == msgpack.packb(1)
+    assert lise_ormsgpack.packb(FlagEnum.ONE) == msgpack.packb(1)
 
 
 def test_auto_enum():
-    assert ormsgpack.packb(AutoEnum.A) == msgpack.packb("a")
+    assert lise_ormsgpack.packb(AutoEnum.A) == msgpack.packb("a")
 
 
 def test_float_enum():
-    assert ormsgpack.packb(FloatEnum.ONE) == msgpack.packb(1.1)
+    assert lise_ormsgpack.packb(FloatEnum.ONE) == msgpack.packb(1.1)
 
 
 def test_str_enum():
-    assert ormsgpack.packb(StrEnum.AAA) == msgpack.packb("aaa")
+    assert lise_ormsgpack.packb(StrEnum.AAA) == msgpack.packb("aaa")
 
 
 def test_bool_enum():
@@ -122,9 +122,9 @@ def test_bool_enum():
 
 
 def test_non_str_keys_enum():
-    assert ormsgpack.packb(
-        {StrEnum.AAA: 1}, option=ormsgpack.OPT_NON_STR_KEYS
+    assert lise_ormsgpack.packb(
+        {StrEnum.AAA: 1}, option=lise_ormsgpack.OPT_NON_STR_KEYS
     ) == msgpack.packb({"aaa": 1})
-    assert ormsgpack.packb(
-        {IntEnum.ONE: 1}, option=ormsgpack.OPT_NON_STR_KEYS
+    assert lise_ormsgpack.packb(
+        {IntEnum.ONE: 1}, option=lise_ormsgpack.OPT_NON_STR_KEYS
     ) == msgpack.packb({1: 1})

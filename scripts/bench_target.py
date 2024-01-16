@@ -16,7 +16,7 @@ try:
 except AttributeError:
     print("sched affinity not available for this platform.")
 
-from ormsgpack import packb, unpackb
+from lise_ormsgpack import packb, unpackb
 
 filename = sys.argv[1]
 n = int(sys.argv[3]) if len(sys.argv) >= 4 else 5000

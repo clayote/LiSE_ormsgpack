@@ -4,7 +4,7 @@ import uuid
 
 import pytest
 
-import ormsgpack
+import lise_ormsgpack
 
 
 def test_uuid_subclass():
@@ -15,16 +15,16 @@ def test_uuid_subclass():
     class AUUID(uuid.UUID):
         pass
 
-    with pytest.raises(ormsgpack.MsgpackEncodeError):
-        ormsgpack.packb(AUUID("{12345678-1234-5678-1234-567812345678}"))
+    with pytest.raises(lise_ormsgpack.MsgpackEncodeError):
+        lise_ormsgpack.packb(AUUID("{12345678-1234-5678-1234-567812345678}"))
 
 
 def test_nil_uuid():
     assert (
-        ormsgpack.unpackb(
-            ormsgpack.packb(uuid.UUID("00000000-0000-0000-0000-000000000000"))
+            lise_ormsgpack.unpackb(
+            lise_ormsgpack.packb(uuid.UUID("00000000-0000-0000-0000-000000000000"))
         )
-        == "00000000-0000-0000-0000-000000000000"
+            == "00000000-0000-0000-0000-000000000000"
     )
 
 
@@ -44,14 +44,14 @@ def test_all_ways_to_create_uuid_behave_equivalently():
         uuid.UUID(fields=(0x12345678, 0x1234, 0x5678, 0x12, 0x34, 0x567812345678)),
         uuid.UUID(int=0x12345678123456781234567812345678),
     ]
-    result = ormsgpack.unpackb(ormsgpack.packb(uuids))
+    result = lise_ormsgpack.unpackb(lise_ormsgpack.packb(uuids))
     packed = [str(u) for u in uuids]
     assert packed == result
 
 
 def test_serializes_correctly_with_leading_zeroes():
     instance = uuid.UUID(int=0x00345678123456781234567812345678)
-    assert ormsgpack.unpackb(ormsgpack.packb(instance)) == str(instance)
+    assert lise_ormsgpack.unpackb(lise_ormsgpack.packb(instance)) == str(instance)
 
 
 def test_all_uuid_creation_functions_create_serializable_uuids():
@@ -62,4 +62,4 @@ def test_all_uuid_creation_functions_create_serializable_uuids():
         uuid.uuid5(uuid.NAMESPACE_DNS, "python.org"),
     )
     for val in uuids:
-        assert ormsgpack.unpackb(ormsgpack.packb(val)) == str(val)
+        assert lise_ormsgpack.unpackb(lise_ormsgpack.packb(val)) == str(val)

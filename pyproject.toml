@@ -1,6 +1,6 @@
 [project]
-name = "ormsgpack"
-repository = "https://github.com/aviramha/ormsgpack"
+name = "LiSE_ormsgpack"
+repository = "https://github.com/clayote/LiSE_ormsgpack"
 requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 5 - Production/Stable",

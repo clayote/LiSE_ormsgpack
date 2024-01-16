@@ -5,7 +5,7 @@ from typing import Any
 
 import msgpack
 
-import ormsgpack
+import lise_ormsgpack
 
 data = []
 for year in range(1920, 2020):
@@ -26,4 +26,4 @@ def test_msgpack_packb(benchmark):
 
 def test_ormsgpack_packb(benchmark):
     benchmark.group = "non_str_keys"
-    benchmark(ormsgpack.packb, data, option=ormsgpack.OPT_NON_STR_KEYS)
+    benchmark(lise_ormsgpack.packb, data, option=lise_ormsgpack.OPT_NON_STR_KEYS)
