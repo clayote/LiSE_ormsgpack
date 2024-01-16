@@ -50,6 +50,15 @@ macro_rules! seria {
                 )).unwrap()};
 }
 
+macro_rules! newtyp {
+    ($serializer:ident, $code:literal, $buf:ident) => {
+        $serializer.serialize_newtype_struct(
+            rmp_serde::MSGPACK_EXT_STRUCT_NAME,
+            &($code as i8, ByteBuf::from($buf.buffer()))
+        )?
+    };
+}
+
 impl Serialize for LiSESerializer {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -68,10 +77,7 @@ impl Serialize for LiSESerializer {
                     self.recursion,
                     self.default
                 ).serialize(&mut ser).unwrap();
-                serializer.serialize_newtype_struct(
-                    rmp_serde::MSGPACK_EXT_STRUCT_NAME,
-                    &(0x7fi8, ByteBuf::from(buf.buffer())),
-                )?
+                newtyp!(serializer, 0x7f, buf)
             }
             LiSEType::Thing => {
                 let graph: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "graph\0");
@@ -80,10 +86,7 @@ impl Serialize for LiSESerializer {
                 seria!(self, seq, graph);
                 seria!(self, seq, node);
                 let _ = seq.end();
-                serializer.serialize_newtype_struct(
-                    rmp_serde::MSGPACK_EXT_STRUCT_NAME,
-                    &(0x7di8, ByteBuf::from(buf.buffer())),
-                )?
+                newtyp!(serializer, 0x7d, buf)
             }
             LiSEType::Place => {
                 let graph: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "graph\0");
@@ -92,10 +95,7 @@ impl Serialize for LiSESerializer {
                 seria!(self, seq, graph);
                 seria!(self, seq, node);
                 let _ = seq.end();
-                serializer.serialize_newtype_struct(
-                    rmp_serde::MSGPACK_EXT_STRUCT_NAME,
-                    &(0x7ei8, ByteBuf::from(buf.buffer())),
-                )?
+                newtyp!(serializer, 0x7e, buf)
             }
             LiSEType::Portal => {
                 let graph: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "graph\0");
@@ -106,10 +106,7 @@ impl Serialize for LiSESerializer {
                 seria!(self, seq, orig);
                 seria!(self, seq, dest);
                 let _ = seq.end();
-                serializer.serialize_newtype_struct(
-                    rmp_serde::MSGPACK_EXT_STRUCT_NAME,
-                    &(0x7ci8, ByteBuf::from(buf.buffer())),
-                )?
+                newtyp!(serializer, 0x7c, buf)
             }
             LiSEType::FinalRule => serializer.serialize_newtype_struct(
                 rmp_serde::MSGPACK_EXT_STRUCT_NAME,
