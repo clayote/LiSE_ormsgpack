@@ -6,6 +6,8 @@ use pyo3::ffi::*;
 use std::os::raw::c_char;
 use std::ptr::{null_mut, NonNull};
 use std::sync::Once;
+use pyo3::PyResult;
+use pyo3::exceptions::PyTypeError;
 
 use crate::ext::create_ext_type;
 
@@ -36,6 +38,37 @@ pub struct LiSETypes {
     pub final_rule: *mut PyTypeObject,
 }
 
+pub enum LiSEType {
+    Character,
+    Thing,
+    Place,
+    Portal,
+    FinalRule,
+}
+
+impl LiSEType {
+    pub fn from_ob_type(ob_type: *mut PyTypeObject) -> PyResult<LiSEType> {
+        let types = unsafe {
+            LISE_TYPES
+                .get_or_init(load_lise_types)
+                .expect("Couldn't load LiSE types")
+                .as_ref()
+        };
+        if ob_type == types.character || ob_type == types.character_proxy {
+            return Ok(LiSEType::Character);
+        } else if ob_type == types.thing || ob_type == types.thing_proxy {
+            return Ok(LiSEType::Thing);
+        } else if ob_type == types.place || ob_type == types.place_proxy {
+            return Ok(LiSEType::Place);
+        } else if ob_type == types.portal || ob_type == types.portal_proxy {
+            return Ok(LiSEType::Portal);
+        } else if ob_type == types.final_rule {
+            return Ok(LiSEType::FinalRule);
+        }
+        Err(PyTypeError::new_err("Unknown type"))
+    }
+}
+
 pub static mut DEFAULT: *mut PyObject = null_mut();
 pub static mut EXT_HOOK: *mut PyObject = null_mut();
 pub static mut OPTION: *mut PyObject = null_mut();
@@ -64,10 +97,6 @@ pub static mut ENUM_TYPE: *mut PyTypeObject = null_mut();
 pub static mut FIELD_TYPE: *mut PyTypeObject = null_mut();
 pub static mut EXT_TYPE: *mut PyTypeObject = null_mut();
 pub static mut EXCEPTION_TYPE: *mut PyTypeObject = null_mut();
-pub static mut FUNCTION_TYPE: *mut PyTypeObject = null_mut();
-pub static mut METHOD_TYPE: *mut PyTypeObject = null_mut();
-pub static mut SET_TYPE: *mut PyTypeObject = null_mut();
-pub static mut FROZENSET_TYPE: *mut PyTypeObject = null_mut();
 pub static mut NUMPY_TYPES: OnceBox<Option<NonNull<NumpyTypes>>> = OnceBox::new();
 pub static mut LISE_TYPES: OnceBox<Option<NonNull<LiSETypes>>> = OnceBox::new();
 pub static mut UTCOFFSET_METHOD_STR: *mut PyObject = null_mut();
@@ -117,10 +146,6 @@ pub fn init_typerefs() {
             .is_ok());
         PyDateTime_IMPORT();
         EXCEPTION_TYPE = (*PyExc_Exception).ob_type;
-        FUNCTION_TYPE = *PyFunction_Type;
-        METHOD_TYPE = *PyMethodDescr_Type;  // Descr??
-        SET_TYPE = *PySet_Type;
-        FROZENSET_TYPE = *PyFrozenSet_Type;
         NONE = Py_None();
         TRUE = Py_True();
         FALSE = Py_False();
@@ -216,7 +241,9 @@ pub fn load_numpy_types() -> Box<Option<NonNull<NumpyTypes>>> {
 }
 
 macro_rules! pymod {
-    ($module:literal) => {PyImport_ImportModule($module.as_ptr() as *const c_char)};
+    ($module:literal) => {
+        PyImport_ImportModule($module.as_ptr() as *const c_char)
+    };
 }
 
 #[cold]

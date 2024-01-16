@@ -19,6 +19,7 @@ use crate::serialize::writer::*;
 use crate::typeref::*;
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 use std::ptr::NonNull;
+use crate::serialize::lise::LiSESerializer;
 
 pub const RECURSION_LIMIT: u8 = 255;
 
@@ -63,6 +64,7 @@ pub enum ObType {
     StrSubclass,
     Ext,
     Unknown,
+    LiSE
 }
 
 pub fn pyobject_to_obtype(obj: *mut pyo3::ffi::PyObject, opts: Opt) -> ObType {
@@ -108,7 +110,10 @@ macro_rules! is_subclass {
 #[inline(never)]
 pub fn pyobject_to_obtype_unlikely(obj: *mut pyo3::ffi::PyObject, opts: Opt) -> ObType {
     let ob_type = ob_type!(obj);
-    if is_type!(ob_type, DATE_TYPE) && opts & PASSTHROUGH_DATETIME == 0 {
+    let lise_type = LiSEType::from_ob_type(ob_type);
+    if lise_type.is_ok() {
+        ObType::LiSE
+    } else if is_type!(ob_type, DATE_TYPE) && opts & PASSTHROUGH_DATETIME == 0 {
         ObType::Date
     } else if is_type!(ob_type, TIME_TYPE) && opts & PASSTHROUGH_DATETIME == 0 {
         ObType::Time
@@ -272,6 +277,18 @@ impl Serialize for PyObjectSerializer {
                     )
                     .serialize(serializer)
                 }
+            }
+            ObType::LiSE => {
+                if unlikely!(self.recursion == RECURSION_LIMIT) {
+                    err!(RECURSION_LIMIT_REACHED)
+                }
+                LiSESerializer::new(
+                    self.ptr,
+                    self.opts,
+                    self.default_calls,
+                    self.recursion,
+                    self.default
+                ).serialize(serializer)
             }
             ObType::Enum => {
                 let value = ffi!(PyObject_GetAttr(self.ptr, VALUE_STR));
