@@ -19,7 +19,7 @@ use crate::serialize::writer::*;
 use crate::typeref::*;
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 use std::ptr::NonNull;
-use crate::serialize::lise::LiSESerializer;
+use crate::serialize::lise::{FrozenSetSerializer, LiSESerializer, SetSerializer};
 
 pub const RECURSION_LIMIT: u8 = 255;
 
@@ -64,7 +64,9 @@ pub enum ObType {
     StrSubclass,
     Ext,
     Unknown,
-    LiSE
+    LiSE,
+    Set,
+    FrozenSet
 }
 
 pub fn pyobject_to_obtype(obj: *mut pyo3::ffi::PyObject, opts: Opt) -> ObType {
@@ -96,6 +98,10 @@ pub fn pyobject_to_obtype(obj: *mut pyo3::ffi::PyObject, opts: Opt) -> ObType {
         ObType::Dict
     } else if is_type!(ob_type, DATETIME_TYPE) && opts & PASSTHROUGH_DATETIME == 0 {
         ObType::Datetime
+    } else if ffi!(PySet_Check(obj)) != 0 {
+        ObType::Set
+    } else if ffi!(PyFrozenSet_Check(obj)) != 0 {
+        ObType::FrozenSet
     } else {
         pyobject_to_obtype_unlikely(obj, opts)
     }
@@ -246,6 +252,20 @@ impl Serialize for PyObjectSerializer {
                 self.default,
             )
             .serialize(serializer),
+            ObType::Set => SetSerializer::new(
+                self.ptr,
+                self.opts,
+                self.default_calls,
+                self.recursion,
+                self.default,
+            ).serialize(serializer),
+            ObType::FrozenSet => FrozenSetSerializer::new(
+                self.ptr,
+                self.opts,
+                self.default_calls,
+                self.recursion,
+                self.default,
+            ).serialize(serializer),
             ObType::Dataclass => {
                 if unlikely!(self.recursion == RECURSION_LIMIT) {
                     err!(RECURSION_LIMIT_REACHED)
