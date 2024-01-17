@@ -1,6 +1,6 @@
 use crate::opt::Opt;
 use crate::serialize::serializer::PyObjectSerializer;
-use crate::typeref::LiSEType;
+use crate::typeref::{load_lise_types, LiSEType, LISE_TYPES, NONE};
 use serde::ser::{Serialize, SerializeSeq};
 use serde::Serializer;
 use serde_bytes::ByteBuf;
@@ -24,6 +24,14 @@ pub struct SetSerializer {
 }
 
 pub struct FrozenSetSerializer {
+    pub ptr: *mut pyo3::ffi::PyObject,
+    opts: Opt,
+    default_calls: u8,
+    recursion: u8,
+    default: Option<NonNull<pyo3::ffi::PyObject>>,
+}
+
+pub struct ExceptionSerializer {
     pub ptr: *mut pyo3::ffi::PyObject,
     opts: Opt,
     default_calls: u8,
@@ -85,6 +93,24 @@ impl FrozenSetSerializer {
     }
 }
 
+impl ExceptionSerializer {
+    pub fn new(
+        ptr: *mut pyo3::ffi::PyObject,
+        opts: Opt,
+        default_calls: u8,
+        recursion: u8,
+        default: Option<NonNull<pyo3::ffi::PyObject>>,
+    ) -> Self {
+        ExceptionSerializer {
+            ptr,
+            opts,
+            default_calls,
+            recursion,
+            default,
+        }
+    }
+}
+
 macro_rules! getattr {
     ($ptr:expr, $s:literal) => {
         ffi!(PyObject_GetAttrString($ptr, $s.as_ptr() as *const c_char))
@@ -92,26 +118,20 @@ macro_rules! getattr {
 }
 
 macro_rules! seria {
-    ($self: ident, $seq: ident, $name:ident) => {$seq.serialize_element(&PyObjectSerializer::new(
-                    $name,
-                    $self.opts,
-                    $self.default_calls,
-                    $self.recursion + 1,
-                    $self.default,
-                )).unwrap()};
-}
-
-macro_rules! newtyp {
-    ($serializer:ident, $code:literal, $buf:ident) => {
-        $serializer.serialize_newtype_struct(
-            rmp_serde::MSGPACK_EXT_STRUCT_NAME,
-            &($code as i8, ByteBuf::from($buf.buffer()))
-        )?
+    ($self: ident, $seq: ident, $name:ident) => {
+        $seq.serialize_element(&PyObjectSerializer::new(
+            $name,
+            $self.opts,
+            $self.default_calls,
+            $self.recursion + 1,
+            $self.default,
+        ))
+        .expect(format!("Failed to serialize {:?}", $name).as_str())
     };
 }
 
 impl Serialize for LiSESerializer {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
     where
         S: Serializer,
     {
@@ -126,9 +146,14 @@ impl Serialize for LiSESerializer {
                     self.opts,
                     self.default_calls,
                     self.recursion,
-                    self.default
-                ).serialize(&mut ser).unwrap();
-                newtyp!(serializer, 0x7f, buf)
+                    self.default,
+                )
+                .serialize(&mut ser)
+                .unwrap();
+                serializer.serialize_newtype_struct(
+                    rmp_serde::MSGPACK_EXT_STRUCT_NAME,
+                    &(0x7fi8, ByteBuf::from(buf.buffer())),
+                )?
             }
             LiSEType::Thing => {
                 let graph: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "graph\0");
@@ -137,7 +162,10 @@ impl Serialize for LiSESerializer {
                 seria!(self, seq, graph);
                 seria!(self, seq, node);
                 let _ = seq.end();
-                newtyp!(serializer, 0x7d, buf)
+                serializer.serialize_newtype_struct(
+                    rmp_serde::MSGPACK_EXT_STRUCT_NAME,
+                    &(0x7di8, ByteBuf::from(buf.buffer())),
+                )?
             }
             LiSEType::Place => {
                 let graph: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "graph\0");
@@ -146,7 +174,10 @@ impl Serialize for LiSESerializer {
                 seria!(self, seq, graph);
                 seria!(self, seq, node);
                 let _ = seq.end();
-                newtyp!(serializer, 0x7e, buf)
+                serializer.serialize_newtype_struct(
+                    rmp_serde::MSGPACK_EXT_STRUCT_NAME,
+                    &(0x7ei8, ByteBuf::from(buf.buffer())),
+                )?
             }
             LiSEType::Portal => {
                 let graph: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "graph\0");
@@ -157,7 +188,10 @@ impl Serialize for LiSESerializer {
                 seria!(self, seq, orig);
                 seria!(self, seq, dest);
                 let _ = seq.end();
-                newtyp!(serializer, 0x7c, buf)
+                serializer.serialize_newtype_struct(
+                    rmp_serde::MSGPACK_EXT_STRUCT_NAME,
+                    &(0x7ci8, ByteBuf::from(buf.buffer())),
+                )?
             }
             LiSEType::FinalRule => serializer.serialize_newtype_struct(
                 rmp_serde::MSGPACK_EXT_STRUCT_NAME,
@@ -168,7 +202,10 @@ impl Serialize for LiSESerializer {
 }
 
 impl Serialize for SetSerializer {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
+    where
+        S: Serializer,
+    {
         let mut buf = std::io::BufWriter::new(vec![]);
         let mut ser = rmp_serde::Serializer::new(&mut buf);
         let len = ffi!(PySet_GET_SIZE(self.ptr)) as usize;
@@ -184,16 +221,22 @@ impl Serialize for SetSerializer {
                     self.recursion + 1,
                     self.default,
                 ))
-                    .unwrap();
+                .unwrap();
             }
         }
         let _ = seq.end();
-        newtyp!(serializer, 0x02, buf)
+        serializer.serialize_newtype_struct(
+            rmp_serde::MSGPACK_EXT_STRUCT_NAME,
+            &(0x02i8, ByteBuf::from(buf.buffer())),
+        )
     }
 }
 
 impl Serialize for FrozenSetSerializer {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
+    where
+        S: Serializer,
+    {
         let mut buf = std::io::BufWriter::new(vec![]);
         let mut ser = rmp_serde::Serializer::new(&mut buf);
         let len = ffi!(PySet_GET_SIZE(self.ptr)) as usize;
@@ -209,10 +252,60 @@ impl Serialize for FrozenSetSerializer {
                     self.recursion + 1,
                     self.default,
                 ))
-                    .unwrap();
+                .unwrap();
             }
         }
         let _ = seq.end();
-        newtyp!(serializer, 0x01, buf)
+        serializer.serialize_newtype_struct(
+            rmp_serde::MSGPACK_EXT_STRUCT_NAME,
+            &(0x01i8, ByteBuf::from(buf.buffer())),
+        )
+    }
+}
+
+impl Serialize for ExceptionSerializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let types = unsafe {
+            LISE_TYPES
+                .get_or_init(load_lise_types)
+                .expect("Couldn't load LiSE types")
+                .as_ref()
+        };
+        let args = getattr!(self.ptr, "args\0");
+        let len = ffi!(PyTuple_GET_SIZE(args)) as usize;
+        let mut buf = std::io::BufWriter::new(vec![]);
+        let mut ser = rmp_serde::Serializer::new(&mut buf);
+        let mut seq = ser.serialize_seq(Some(len + 2)).unwrap();
+        let exc_cls = getattr!(self.ptr, "__class__\0");
+        let exc_cls_name = getattr!(exc_cls, "__name__\0");
+        seria!(self, seq, exc_cls_name);
+        let tb = ffi!(PyException_GetTraceback(self.ptr));
+        let tb_dict: *mut pyo3::ffi::PyObject;
+        if tb.is_null() {
+            tb_dict = unsafe { NONE };
+        } else {
+            let arg_list = ffi!(PyList_New(1));
+            ffi!(PyList_SetItem(arg_list, 0, tb));
+            let traceback = ffi!(PyObject_CallObject(types.traceback, arg_list));
+            tb_dict = ffi!(PyObject_CallMethodNoArgs(
+                traceback,
+                pyo3::ffi::PyUnicode_FromString("to_dict\0".as_ptr() as *const c_char)
+            ));
+        }
+        seria!(self, seq, tb_dict);
+        if len > 0 {
+            for i in 0..=len - 1 {
+                let elem = nonnull!(ffi!(PyTuple_GET_ITEM(args, i as isize))).as_ptr();
+                seria!(self, seq, elem);
+            }
+        }
+        let _ = seq.end();
+        serializer.serialize_newtype_struct(
+            rmp_serde::MSGPACK_EXT_STRUCT_NAME,
+            &(0x03i8, ByteBuf::from(buf.buffer())),
+        )
     }
 }

@@ -2,12 +2,12 @@
 
 use ahash::RandomState;
 use once_cell::race::OnceBox;
+use pyo3::exceptions::PyTypeError;
 use pyo3::ffi::*;
+use pyo3::PyResult;
 use std::os::raw::c_char;
 use std::ptr::{null_mut, NonNull};
 use std::sync::Once;
-use pyo3::PyResult;
-use pyo3::exceptions::PyTypeError;
 
 use crate::ext::create_ext_type;
 
@@ -36,6 +36,7 @@ pub struct LiSETypes {
     pub portal: *mut PyTypeObject,
     pub portal_proxy: *mut PyTypeObject,
     pub final_rule: *mut PyTypeObject,
+    pub traceback: *mut PyObject,
 }
 
 pub enum LiSEType {
@@ -249,6 +250,7 @@ macro_rules! pymod {
 #[cold]
 pub fn load_lise_types() -> Box<Option<NonNull<LiSETypes>>> {
     unsafe {
+        let tblib = pymod!("tblib\0");
         let util_mod = pymod!("LiSE.util\0");
         let char_mod = pymod!("LiSE.character\0");
         let proxy_mod = pymod!("LiSE.proxy\0");
@@ -265,6 +267,7 @@ pub fn load_lise_types() -> Box<Option<NonNull<LiSETypes>>> {
             portal: look_up_numpy_type(portal_mod, "Portal\0"),
             portal_proxy: look_up_numpy_type(proxy_mod, "PortalProxy\0"),
             final_rule: look_up_numpy_type(util_mod, "FinalRule\0"),
+            traceback: PyObject_GetAttrString(tblib, "Traceback\0".as_ptr() as *const c_char),
         });
 
         Py_XDECREF(portal_mod);
@@ -272,6 +275,8 @@ pub fn load_lise_types() -> Box<Option<NonNull<LiSETypes>>> {
         Py_XDECREF(proxy_mod);
         Py_XDECREF(char_mod);
         Py_XDECREF(util_mod);
+        Py_XDECREF(tblib);
+        Py_XDECREF(types.traceback);
         Box::new(Some(nonnull!(Box::<LiSETypes>::into_raw(types))))
     }
 }

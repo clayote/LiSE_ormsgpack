@@ -10,6 +10,9 @@ use crate::serialize::default::*;
 use crate::serialize::dict::*;
 use crate::serialize::ext::*;
 use crate::serialize::int::*;
+use crate::serialize::lise::{
+    ExceptionSerializer, FrozenSetSerializer, LiSESerializer, SetSerializer,
+};
 use crate::serialize::list::*;
 use crate::serialize::numpy::*;
 use crate::serialize::str::*;
@@ -17,9 +20,9 @@ use crate::serialize::tuple::*;
 use crate::serialize::uuid::*;
 use crate::serialize::writer::*;
 use crate::typeref::*;
+use pyo3::ffi::PyExc_Exception;
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 use std::ptr::NonNull;
-use crate::serialize::lise::{FrozenSetSerializer, LiSESerializer, SetSerializer};
 
 pub const RECURSION_LIMIT: u8 = 255;
 
@@ -66,7 +69,8 @@ pub enum ObType {
     Unknown,
     LiSE,
     Set,
-    FrozenSet
+    FrozenSet,
+    Exception,
 }
 
 pub fn pyobject_to_obtype(obj: *mut pyo3::ffi::PyObject, opts: Opt) -> ObType {
@@ -102,6 +106,8 @@ pub fn pyobject_to_obtype(obj: *mut pyo3::ffi::PyObject, opts: Opt) -> ObType {
         ObType::Set
     } else if ffi!(PyFrozenSet_Check(obj)) != 0 {
         ObType::FrozenSet
+    } else if ffi!(PyObject_IsInstance(obj, PyExc_Exception)) != 0 {
+        ObType::Exception
     } else {
         pyobject_to_obtype_unlikely(obj, opts)
     }
@@ -258,14 +264,24 @@ impl Serialize for PyObjectSerializer {
                 self.default_calls,
                 self.recursion,
                 self.default,
-            ).serialize(serializer),
+            )
+            .serialize(serializer),
             ObType::FrozenSet => FrozenSetSerializer::new(
                 self.ptr,
                 self.opts,
                 self.default_calls,
                 self.recursion,
                 self.default,
-            ).serialize(serializer),
+            )
+            .serialize(serializer),
+            ObType::Exception => ExceptionSerializer::new(
+                self.ptr,
+                self.opts,
+                self.default_calls,
+                self.recursion,
+                self.default,
+            )
+            .serialize(serializer),
             ObType::Dataclass => {
                 if unlikely!(self.recursion == RECURSION_LIMIT) {
                     err!(RECURSION_LIMIT_REACHED)
@@ -307,8 +323,9 @@ impl Serialize for PyObjectSerializer {
                     self.opts,
                     self.default_calls,
                     self.recursion,
-                    self.default
-                ).serialize(serializer)
+                    self.default,
+                )
+                .serialize(serializer)
             }
             ObType::Enum => {
                 let value = ffi!(PyObject_GetAttr(self.ptr, VALUE_STR));
