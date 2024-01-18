@@ -119,14 +119,16 @@ macro_rules! getattr {
 
 macro_rules! seria {
     ($self: ident, $seq: ident, $name:ident) => {
-        $seq.serialize_element(&PyObjectSerializer::new(
+        let _ = match $seq.serialize_element(&PyObjectSerializer::new(
             $name,
             $self.opts,
             $self.default_calls,
             $self.recursion + 1,
             $self.default,
-        ))
-        .expect(format!("Failed to serialize {:?}", $name).as_str())
+        )) {
+            Ok(ok) => ok,
+            Err(e) => return Err(serde::ser::Error::custom(e))
+        };
     };
 }
 
