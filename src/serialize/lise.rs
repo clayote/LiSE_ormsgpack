@@ -141,15 +141,17 @@ impl Serialize for LiSESerializer {
         let mut ser = rmp_serde::Serializer::new(&mut buf);
         Ok(match lise_type {
             LiSEType::Character => {
-                PyObjectSerializer::new(
+                let _ = match PyObjectSerializer::new(
                     getattr!(self.ptr, "name\0"),
                     self.opts,
                     self.default_calls,
                     self.recursion,
                     self.default,
                 )
-                .serialize(&mut ser)
-                .unwrap();
+                .serialize(&mut ser) {
+                    Ok(this) => this,
+                    Err(e) => return Err(serde::ser::Error::custom(e))
+                };
                 serializer.serialize_newtype_struct(
                     rmp_serde::MSGPACK_EXT_STRUCT_NAME,
                     &(0x7fi8, ByteBuf::from(buf.buffer())),
