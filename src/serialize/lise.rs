@@ -160,7 +160,7 @@ impl Serialize for LiSESerializer {
                 )?
             }
             LiSEType::Thing => {
-                let graph: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "graph\0");
+                let graph: *mut pyo3::ffi::PyObject = getattr!(getattr!(self.ptr, "graph\0"), "name\0");
                 let node: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "node\0");
                 let mut seq = ser.serialize_seq(Some(2)).unwrap();
                 seria!(self, seq, graph);
@@ -172,7 +172,7 @@ impl Serialize for LiSESerializer {
                 )?
             }
             LiSEType::Place => {
-                let graph: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "graph\0");
+                let graph: *mut pyo3::ffi::PyObject = getattr!(getattr!(self.ptr, "graph\0"), "name\0");
                 let node: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "node\0");
                 let mut seq = ser.serialize_seq(Some(2)).unwrap();
                 seria!(self, seq, graph);
@@ -184,7 +184,7 @@ impl Serialize for LiSESerializer {
                 )?
             }
             LiSEType::Portal => {
-                let graph: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "graph\0");
+            let graph: *mut pyo3::ffi::PyObject = getattr!(getattr!(self.ptr, "graph\0"), "name\0");
                 let orig: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "orig\0");
                 let dest: *mut pyo3::ffi::PyObject = getattr!(self.ptr, "dest\0");
                 let mut seq = ser.serialize_seq(Some(3)).unwrap();
