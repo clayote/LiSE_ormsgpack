@@ -114,13 +114,13 @@ impl Serialize for Dict {
         let len = ffi!(Py_SIZE(self.ptr)) as usize;
         let mut map = serializer.serialize_map(Some(len)).unwrap();
         for (key, value) in PyDictIter::from_pyobject(self.ptr) {
-            if unlikely!(!is_type!(ob_type!(key.as_ptr()), STR_TYPE)) {
-                err!(KEY_MUST_BE_STR)
-            }
-            let data = unicode_to_str(key.as_ptr());
-            if unlikely!(data.is_none()) {
-                err!(INVALID_STR)
-            }
+            let pykey = PyObjectSerializer::new(
+                key.as_ptr(),
+                self.opts,
+                self.default_calls,
+                self.recursion + 1,
+                self.default,
+            );
             let pyvalue = PyObjectSerializer::new(
                 value.as_ptr(),
                 self.opts,
@@ -128,7 +128,7 @@ impl Serialize for Dict {
                 self.recursion + 1,
                 self.default,
             );
-            map.serialize_key(data.unwrap()).unwrap();
+            map.serialize_key(&pykey)?;
             map.serialize_value(&pyvalue)?;
         }
         map.end()
@@ -168,23 +168,23 @@ impl Serialize for DictSortedKey {
         S: Serializer,
     {
         let len = ffi!(Py_SIZE(self.ptr)) as usize;
-        let mut items: SmallVec<[(&str, *mut pyo3::ffi::PyObject); 8]> =
+        let mut items: SmallVec<[(*mut pyo3::ffi::PyObject, *mut pyo3::ffi::PyObject); 8]> =
             SmallVec::with_capacity(len);
         for (key, value) in PyDictIter::from_pyobject(self.ptr) {
-            if unlikely!(!is_type!(ob_type!(key.as_ptr()), STR_TYPE)) {
-                err!(KEY_MUST_BE_STR)
-            }
-            let data = unicode_to_str(key.as_ptr());
-            if unlikely!(data.is_none()) {
-                err!(INVALID_STR)
-            }
-            items.push((data.unwrap(), value.as_ptr()));
+            items.push((key.as_ptr(), value.as_ptr()));
         }
 
-        items.sort_unstable_by(|a, b| a.0.cmp(b.0));
+        items.sort_unstable_by(|a, b| a.0.cmp(&b.0));
 
         let mut map = serializer.serialize_map(Some(len)).unwrap();
         for (key, val) in items.iter() {
+            let pykey = PyObjectSerializer::new(
+                *key,
+                self.opts,
+                self.default_calls,
+                self.recursion + 1,
+                self.default,
+            );
             let pyvalue = PyObjectSerializer::new(
                 *val,
                 self.opts,
@@ -192,7 +192,7 @@ impl Serialize for DictSortedKey {
                 self.recursion + 1,
                 self.default,
             );
-            map.serialize_key(key).unwrap();
+            map.serialize_key(&pykey)?;
             map.serialize_value(&pyvalue)?;
         }
         map.end()
